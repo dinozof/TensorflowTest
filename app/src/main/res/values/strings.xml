@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">TensorFlowTest</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_developer">Developer Options</string>
+    <string name="nothingUseful">Nothing Useful… may break the App</string>
+    <string name="reverseColorBlack">Black backround - White number</string>
+    <string name="reverseColorWhite">White background - Black number</string>
+    <string name="permissionDenied">Permission denied to read your External storage</string>
+    <string name="imageSaved">Image Saved</string>
+    <string name="waiting">waiting</string>
+    <string name="imageSavedLocationMessage">Image Saved in</string>
+</resources>
