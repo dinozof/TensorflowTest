@@ -32,6 +32,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfInt4;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -143,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     parentView.setDrawingCacheEnabled(true);
                     Bitmap image=parentView.getDrawingCache();
-                    image.setConfig(ARGB_8888);
                     Bitmap toBeSaved = scaleAndBinarize(image,invertImageColor);
                     parentView.setDrawingCacheEnabled(false);
                     saveImage(toBeSaved);
@@ -163,17 +163,20 @@ public class MainActivity extends AppCompatActivity {
                 scaledImage = scaleAndBinarize(image,invertImageColor);
                 parentView.setDrawingCacheEnabled(false);
 
-// TODO: strano ma non riesco a buttare dentro un array di float con già la codifica corretta: sfondo nero e scritta bianca vedi getPixelData()
+
                 float[] pixels;
                 if(invertImageColor){
-                    int[]pix = new int[PIXEL_WIDTH*PIXEL_WIDTH];
-                    scaledImage.getPixels(pix, 0, scaledImage.getWidth(), 0, 0, scaledImage.getWidth(), scaledImage.getHeight());
+                    Log.d(TAG,"trying with original inverted image");
+                    int width=scaledImage.getWidth();
+                    int height = scaledImage.getHeight();
+                    int[]pix = new int[width*height];
+                    scaledImage.getPixels(pix, 0, width, 0, 0, width, height);
                    pixels = new float[pix.length];
                     for (int i=0; i<pix.length; i++){
                         int c =pix[i];
-                        int b = (c & 0xff); //255
-                        pixels[i]=0xff;
-                        Log.d(TAG, "pixel: "+b);
+                        int b = c & 0xff; //255
+                        pixels[i]=b;
+                        Log.d(TAG, pix.length+" pixel inverted: "+String.valueOf(b)+" "+String.valueOf(Color.alpha(pix [i])));
                     }
                 }else{
                     pixels = getPixelData(scaledImage);
@@ -292,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
         Mat resized = new Mat(PIXEL_WIDTH,PIXEL_WIDTH,tmp.type());
         Imgproc.resize(tmp,resized,resized.size(),0,0,Imgproc.INTER_AREA);
 
-        resized = blur(resized,2);
+        resized = blur(resized);
 
         //threshold to binarize result
         Mat binarized =new Mat(PIXEL_WIDTH,PIXEL_WIDTH,tmp.type());
@@ -301,15 +304,20 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        Bitmap end = Bitmap.createBitmap(resized.cols(), resized.rows(), image.getConfig());
+        Bitmap end = Bitmap.createBitmap(resized.cols(), resized.rows(),ARGB_8888 );
 
 
         if (invert){ //need black background and white number?
+            Log.d(TAG,"inverting colors...");
             Mat inverted =new Mat(PIXEL_WIDTH,PIXEL_WIDTH,tmp.type());
-            Core.bitwise_not(binarized,inverted);
+            Mat greyImage =new Mat();
+            //NON PASSAVO A SCALA DI GRIGI
+            Imgproc.cvtColor(binarized,greyImage, Imgproc.COLOR_RGB2GRAY);
+            Core.bitwise_not(greyImage,inverted);
 
             MatOfDouble mean = new MatOfDouble();
             MatOfDouble std = new MatOfDouble();
+
 
             Core.meanStdDev(inverted, mean, std);
             IMAGE_MEAN= (int) mean.toArray()[0];
@@ -341,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
             // Set 0 for white and 255 for black pixel
             int pix = pixels[i];
             int b = pix & 0xff; //255
-            Log.d(TAG,"pixel:"+b);
+            Log.d(TAG,"pixel:"+String.valueOf(b));
             retPixels[i] = 0xff - b;
 
 
@@ -380,13 +388,15 @@ public class MainActivity extends AppCompatActivity {
             } } };
 
 
-    public Mat blur(Mat input, int numberOfTimes){ //blur out the image
+    public Mat blur(Mat input){ //blur out the image
         Mat sourceImage = new Mat();
-        Mat destImage = input.clone();
-        for(int i=0;i<numberOfTimes;i++){
-            sourceImage = destImage.clone();
-            Imgproc.blur(sourceImage, destImage, new Size(3.0, 3.0));
-        }
+        Mat destImage= new Mat();
+
+        sourceImage =input.clone();
+        Mat  gaussianImage = new Mat();
+        Imgproc.blur(sourceImage, gaussianImage, new Size(3,3));
+        Imgproc.medianBlur(gaussianImage,destImage,5);
+
         return destImage;
     }
 
