@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private  Button buttonSave;
     private Bitmap scaledImage;
     private static final int PIXEL_WIDTH = 28;
-    private boolean invertImageColor=false;
+    private boolean invertImageColor=true;
 
 
     private static final int INPUT_SIZE = 28;
@@ -96,7 +96,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         switchB = findViewById(R.id.switch1);
-        switchB.setChecked(false);
+        switchB.setChecked(true);
+
+
+
         buttonSave = findViewById(R.id.buttonSave);
         buttonclear = findViewById(R.id.buttonClear);
         buttonSubmit = findViewById(R.id.buttonDetect);
@@ -166,18 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
                 float[] pixels;
                 if(invertImageColor){
-                    Log.d(TAG,"trying with original inverted image");
-                    int width=scaledImage.getWidth();
-                    int height = scaledImage.getHeight();
-                    int[]pix = new int[width*height];
-                    scaledImage.getPixels(pix, 0, width, 0, 0, width, height);
-                   pixels = new float[pix.length];
-                    for (int i=0; i<pix.length; i++){
-                        int c =pix[i];
-                        int b = c & 0xff; //255
-                        pixels[i]=b;
-                        Log.d(TAG, pix.length+" pixel inverted: "+String.valueOf(b)+" "+String.valueOf(Color.alpha(pix [i])));
-                    }
+                    pixels=retrivePixelData(scaledImage);
                 }else{
                     pixels = getPixelData(scaledImage);
                 }
@@ -199,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
         buttonSave.setEnabled(false);
         buttonSubmit.setEnabled(false);
         LinearLayout layout = findViewById(R.id.toplinearl);
+        layout.setBackgroundColor(Color.BLACK);
+        switchB.setBackgroundColor(Color.BLACK);
+        switchB.setTextColor(Color.WHITE);
         layout.setVisibility(View.INVISIBLE);
     }
 
@@ -332,6 +327,31 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    public float [] retrivePixelData(Bitmap scaledImage){
+        float[] pixels;
+        Log.d(TAG,"trying with original inverted image");
+        int width=scaledImage.getWidth();
+        int height = scaledImage.getHeight();
+        int[]pix = new int[width*height];
+        scaledImage.getPixels(pix, 0, width, 0, 0, width, height);
+        pixels = new float[pix.length];
+        for (int i=0; i<pix.length; i++){
+            int c =pix[i];
+            int b = c & 0xff; //255
+            pixels[i]=b;
+            Log.d(TAG, pix.length+" pixel inverted: "+String.valueOf(b)+" "+String.valueOf(Color.alpha(pix [i])));
+        }
+
+        return pixels;
+    }
+
+
+    /**
+     * Return pixel data inverted.
+     *
+     * @deprecated use {@link #retrivePixelData(Bitmap)} instead.
+     */
+    @Deprecated
     public float[] getPixelData(Bitmap mOffscreenBitmap) {
         if (mOffscreenBitmap == null) {
             return null;

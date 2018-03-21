@@ -40,7 +40,7 @@ import android.util.Log;
  */
 public class TensorFlowImageClassifier implements Classifier {
 
-    private static final String TAG = "TFImageClassifier";
+    private static final String TAG = "TFDrawClassifier";
 
     // Only return this many results with at least this confidence.
     private static final int MAX_RESULTS = 3;
